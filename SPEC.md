@@ -20,7 +20,7 @@ accuracy thresholds before development begins.
 
 The system produces one event per vehicle that crosses the line.
 
-### Event schema
+### 1.1 Event schema
 
 Each event records:
 
@@ -96,6 +96,33 @@ footage. Degradation on harder clips is documented and shown (not hidden).
 - **Revision note.** These targets were set before any implementation and    
 are provisional. If they prove unachievable, they will be revised with a  
 recorded reason.
+
+### 2.1 Evaluation Clip Standards
+
+All evaluation clips are approximately 4 minutes long with (+25, -25) second wiggle room.  
+The clips are trimmed from traffic footages that are longer in duration using ffmpeg with     
+no re-encoding (no quality change). A minimum of 4 evaluation clips are required, covering   
+at least two different camera angles and two different traffic conditions. These clips are   
+completely separate from development clips that will be used for tuning.  
+
+Traffic density is measured over the full clip duration: 
+
+- (total vehicles counted) / (duration in minutes, ~4) / number of lanes at the counting line.
+
+This gives a vehicles-per-minute/lane figure comparable across all eval clips.
+
+| Label  | Vehicles per lane per minute | Description                        |
+|--------|-----------------------------|------------------------------------|
+| Light  | 1–6                        | Clear gaps between vehicles        |
+| Medium | 7–16                       | Steady flow, gaps under ~2 seconds |
+| Heavy  | 17+                        | Near-continuous flow, minimal gaps  |
+
+Note that these "Light, Medium, Heavy" labels are only for organizing evaluation clips and   
+are based on observation, not from any formal traffic engineering classifications.   
+They are defined so that we can report accuracy per condition rather than as a single average.  
+
+If traffic density varies noticeably within a clip (e.g., light for 3 mins then heavy for one),    
+the clip is labeled by its average but a note will be included describing the variation.
 
 ## 3. What is Out of Scope
 
