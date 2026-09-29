@@ -3,20 +3,20 @@
 "Submitted for your approval: a 1997 Corolla, ID 3, last seen at y=397. It will cross no line.   
 It will register no event. It has entered... the Twilight Zone."
 
-*Last updated: 2026-09-07*
+*Last updated: 2026-09-29*
 
 This document details the high-level scope of this project. It aims to identify what  
 the delivarible is, what it is not, foundational parameters, architectural constraints,   
-and a concrete and realistic finish line. Establishing these early keeps the project away   
-from scope creep and guides database and tracking decisions. It will also define acceptable   
-accuracy thresholds before development begins.  
+and a concrete and realistic finish line. Establishing these early ensures the project is kept  
+away from scope creep and it also guides database and tracking decisions. It will also define  
+acceptable accuracy thresholds before development begins.  
 
 
 ## 1. Output
 
 **Given:**
 - A recorded video file from a fixed camera
-- A user-defined line specified in config
+- A user-defined line specified in `config`
 
 The system produces one event per vehicle that crosses the line.
 
@@ -38,12 +38,12 @@ Each event records:
 Events are written to a single database table. This table is shared across all processed video clips     
 and will be the system's single source of truth. It writes each crossing (event) to the database   
 as it happens, and when you ask for a total, it counts the rows. Every reported figure is a query    
-over stored events.  
+of the stored events.  
 
 All reporting is derived from the table:  
 
 - **Per-direction totals:** Event counts grouped by `direction`, scoped to  
-  a `source_video` and `line_id`.z
+  a `source_video` and `line_id`.
 
 - **Counts aggregated per unit time:** Events grouped into fixed time buckets   
 (60 seconds by default but configurable). It produces a count per time interval   
@@ -73,41 +73,41 @@ Three metrics are reported per clip:
 | Metric | Definition | Target |
 |---|---|---|
 | Net count error | \|system total − true total\| ÷ true total | ≤ 5% |
-| Direction accuracy | Events with correct direction ÷ true total | ≥ 95% |
 | Gross error rate | (misses (FNs) + phantom counts (FPs)) ÷ true total | ≤ 10% |
+| Direction accuracy | Events with correct direction ÷ true total | ≥ 95% |
 
 - **Why three.** Looking at net count error alone could mislead. For example,      
 a clip where the system misses five vehicles but phantom counts another   
-five vehicles scores a perfect 0% while hiding the mistakes it made.  
+five vehicles scores a perfect 0% in `net count error` while hiding the mistakes it made.  
 Gross error rate catches that by counting individual mistakes (misses + phantom counts).   
 Direction accuracy is tracked separately because ID swaps (when objects get too close)   
-change ID directions without affecting totals.  
+can change ID directions without affecting totals.  
 
 - **Class breakdown is not taken into account in accuracy claims.** Class labels are    
-reported but not scored. Class confusion (e.g., car/truck confusion) is expected and   
-correcting it is not a project goal.  
+reported but not scored. Class confusion (e.g., mistaking a `truck` for a `bus`)  
+is expected and correcting it is not a project goal.  
 
 - **Reporting.** These metrics are reported for each clip, not averaged into a  
-single headline number. Accuracy can vary substantially with traffic density,  
+single headline number. Accuracy can substantially vary with traffic density,  
 angle of the camera setup, and occlusion, and a single average would hide this.  
 The targets shown above is expected to be met on clear, moderate-density daytime  
-footage. Degradation on harder clips is documented and shown (not hidden). 
+footage. Degradation on harder clips is documented and will be shown (not hidden). 
 
 - **Revision note.** These targets were set before any implementation and    
-are provisional. If they prove unachievable, they will be revised with a  
-recorded reason.
+are provisional. If they prove unachievable, they will be revised and the reason  
+will be recorded and shown.
 
 ### 2.1 Evaluation Clip Standards
 
 All evaluation clips are approximately 4 minutes long with (+25, -25) second wiggle room.  
 The clips are trimmed from traffic footages that are longer in duration using ffmpeg with     
 no re-encoding (no quality change). A minimum of 4 evaluation clips are required, covering   
-at least two different camera angles and two different traffic conditions. These clips are   
-completely separate from development clips that will be used for tuning.  
+at least two different camera angles and two different traffic conditions (e.g., heavy, medium).   
+These clips are completely separate from development clips that will be used for tuning.  
 
 Traffic density is measured over the full clip duration: 
 
-- (total vehicles counted) / (duration in minutes, ~4) / number of lanes at the counting line.
+- (total vehicles counted) / (duration in minutes, which is ~4) / number of lanes at the counting line.
 
 This gives a vehicles-per-minute/lane figure comparable across all eval clips.
 
@@ -118,11 +118,11 @@ This gives a vehicles-per-minute/lane figure comparable across all eval clips.
 | Heavy  | 17+                        | Near-continuous flow, minimal gaps  |
 
 Note that these "Light, Medium, Heavy" labels are only for organizing evaluation clips and   
-are based on observation, not from any formal traffic engineering classifications.   
-They are defined so that we can report accuracy per condition rather than as a single average.  
+are based on observation, not from any formal traffic volume classifications.   
+They are defined so traffic condition is taken into account when reporting accuracy.  
 
 If traffic density varies noticeably within a clip (e.g., light for 3 mins then heavy for one),    
-the clip is labeled by its average but a note will be included describing the variation.
+the clip is labeled by its average but a note can be included describing the variation.
 
 ## 3. What is Out of Scope
 
@@ -152,7 +152,7 @@ accuracy target. Other than these, the rest is out of scope for this project.
 **Software engineering**
 - Horizontal scaling, queuing, or distributed processing
 - CI/CD pipelines
-- Model training from scratch (pretrained detectors with optional fine-tuning only)
+- Model training from scratch (pretrained detectors may be fine-tuned though)
 
 **Rationale.** This is a solo build. Every item above is either a separate project or   
 a source of complexity that does not improve the core aim, which is accurate, verifiable   
@@ -182,9 +182,9 @@ zooming, or handheld footage
 **Scene**
 - Vehicles are the objects of interest
 - Pedestrians and cyclists are filtered out by class
-- Traffic is light to moderate in density where vehicles are generally
+- Traffic is preferrably light to moderate in density where vehicles are generally
   distinguishable rather than mostly overlapping
-- No persistent obstruction (e.g., poles, signs, overpass) crossing the counting
+- No persistent obstruction (e.g., signs, overpass) crossing the counting
   line
 
 **Hardware**
@@ -192,7 +192,7 @@ zooming, or handheld footage
 - *[Actual machine specs placed here later]*
 - *[Throughput figures reported later are relative to this hardware specs]*
 
-**Known degradation.** Accuracy is expected to decline as: 
+**Known Limitation.** Accuracy is expected to decline as: 
 - Traffic density rises
 - The camera angle flattens toward road level 
 - As vehicles become smaller in frame. 
@@ -215,4 +215,4 @@ The whole thing runs from `docker compose up` on a clean machine.
 
 The project is complete when we can perform this in under five minutes for  
 someone who has never seen it, and state a measured accuracy figure for  
-each clip against hand-counted ground truth.
+each clip (even against hand-counted ground truth).
