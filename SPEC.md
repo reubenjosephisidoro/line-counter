@@ -182,7 +182,7 @@ zooming, or handheld footage
 **Scene**
 - Vehicles are the objects of interest
 - Pedestrians and cyclists are filtered out by class
-- Traffic is preferrably light to moderate in density where vehicles are generally
+- Traffic is preferably light to moderate in density where vehicles are generally
   distinguishable rather than mostly overlapping
 - No persistent obstruction (e.g., signs, overpass) crossing the counting
   line
