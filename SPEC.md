@@ -107,7 +107,9 @@ These clips are completely separate from development clips that will be used for
 
 Traffic density is measured over the full clip duration: 
 
-- (total vehicles counted) / (duration in minutes, which is ~4) / number of lanes at the counting line.
+- (total vehicles counted) / (duration in minutes, which is ~4) / number of lanes in both directions.
+
+If the road has 4 lanes in each direction, that's 8 lanes total for the density calculation.
 
 This gives a vehicles-per-minute/lane figure comparable across all eval clips.
 
