@@ -135,7 +135,7 @@ accuracy target. Other than these, the rest is out of scope for this project.
 **Input**
 - Live camera or stream ingestion (batch processing of recorded files for now) *(later)*
 - Multiple simultaneous cameras
-- Moving or handheld cameras (system assumes fixed viewpoint)
+- Moving or handheld cameras (system assumes fixed viewpoint) *(later)*
 - Night footage, rain, fog, or low-visibility conditions (not testing under these conditions)
 
 **Analysis**

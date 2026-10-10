@@ -1,0 +1,94 @@
+**This log is for my personal note-taking when during the initial visualizations of 
+the dev clips in `detection-tests.ipynb`
+
+*Last updated: 2026-10-10*
+
+## Detection Notes
+
+Model: YOLOv8m pretrained on COCO
+Default conf threshold: 0.25
+Default NMS IoU: 0.7
+
+### dev_overhead_medium_congest_01.mp4
+
+- **Frames sampled:** [1111]
+- Easy cases (vehicles near the camera), as expected, show tight boxes and high conf scores (0.70–0.90+).
+- The farther vehicles are from the camera, the weaker their box localizations and conf scores get (expected behavior).
+- Many far vehicles are not detected. Missed entirely until they cross a certain depth.
+- The detection zone boundary approximately starts at the middle of the visible road (expected).
+- Class confusion is present. Truck/car and Bus/truck overlap on same vehicle (different-class duplicate boxes).
+- Congestion is present on one lane. Trucks are bumper-to-bumper but the detector successfully captures them.
+- Trucks are parked on the left in what looks like a rest stop. Some farther trucks are mislabeled as bus.
+
+### dev_overhead_heavy_01.mp4
+
+- **Frames sampled:** [107, 119]
+- Two frames close to each other by 12 steps are sampled. 
+- Frame 107 shows a traffic cluster at a greater distance. Frame 119 shows the traffic now closer to the camera (see plot)
+- Frame 107 has a single misclassified object (a truck classified as a car)
+- At Frame 119, that same vehicle is now closer to the camera so it is now being classified correctly.
+- As vehicles drew closer to the camera, their confidence score and box accuracy improved frame-over-frame as expected.
+
+### dev_overhead_heavy_02.mp4 
+
+- **Frames sampled:** [200, 500, 800, 1100, 1400, 1700, 2000, 2300, 2600]
+- Frames spread across the clip with a big step (150) to sample different traffic volumes and vehicle positions.
+- `dev_overhead_heavy_02` is taken from the same source video as `dev_overhead_heavy_01`.
+- As with the previous static displays, vehicles closer tend to secure higher conf scores, correct labels, and better fitting boxes
+- Vehicles at a farther depth tend to be low confidence predictions (0.3-0.7) and have looser box fits
+- Most vehicles that are too far are completely missed. Safe detection zone remains somewhere at the middle of the visible road. 
+- Misclassified objects remain present (e.g., a truck misclassified as a bus in one of the frames)
+- One notable persistent pattern is that the misclassifications are more frequent in vehicles far from the camera
+- As noted, this clip has stationary trucks parked next to each other on the left. Farther trucks are mislabeled as buses.
+- One frame has a person walking at the side of the and labeled as such by the detector (non-vehicle detection).
+
+### dev_roadside_heavy_congest_01
+
+- **Frames sampled: [1000, 2000]**
+- Unlike the other clips, this camera is positioned roadside (angled down) rather than mounted directly above the road.
+- It features heavy traffic volume, with a time range of congested traffic.
+- Same patterns as the overhead clips. Nearer vehicles get better detection quality (bounding boxes, class labels, and confidence scores).
+- Misclassifications are concentrated farther down the visible road.
+- One case of overlapping boxes was observed (frame 2000), where a van is simultaneously labeled as both a car and a truck.
+
+We see the same patterns across all four clips. Detection quality degrades with distance, misclassifications cluster at farther depth,   
+reliable zone is roughly the middle of the visible road going forward into the camera. That consistency is expected and   
+the counting line placement will handle it later.  
+
+## Finding a Suitable Confidence Threshold
+
+We need to find a confidence threshold where detections below this cutoff is excluded. This is a precision-recall tradeoff because a   
+high confidence threshold like 0.75 could mean fewer false positives but we miss real vehicle detections, which ultimately results in   
+undercounting. Meanwhile, a very low threshold (e.g., 0.10 - 0.15) will have the detector spotting almost every vehicle, but it can also   
+start hallucinating, boxing spots that are not objects at all. This risks creating phantom counts and tracks since the tracker tries to   
+assign IDs to these detections. The goal is finding the sweet spot where hallucinations are gone but real vehicles still survive. 
+
+We want to know:
+
+- At what confidence do false positives start appearing?
+- At what confidence do real vehicles start getting cut?
+
+Note that "false positive" here is relative to the task, not the model. The model can correctly detect non-vehicle objects like people,   
+unless we later tune it to detect only vehicle types. A person or a fire hydrant detected at high confidence isn’t a hallucination. 
+The model genuinely sees an object there. Those can be handled separately by class filtering, not by the confidence threshold.  
+
+### Run the Detector at 0.1 Confidence Threshold
+
+- Same frame as displayed above (from Clip 3). We can see things showing up that wasn't there at 0.25 conf.
+- Detection frequency increased but many of them are misclassifications (the parked trucks on left have more bus-labeled boxes now).
+- First time we saw a hallucination. On both frames a truck is being detected when there's nothing on the spot (leftmost detection on the left of the building).
+
+### Run the Detector at 0.8 Confidence Threshold (Same Frames)
+
+- Confidence threshold at 0.8 lost many detections.   
+- Even some vehicles near the camera, the easy cases, are not boxed.     
+- The sweet spot is should be somewhere between 0.25 and 0.8. We can try 0.5 next. 
+
+### 0.5 Confidence Threshold
+
+- 0.5 still misses some detections. 
+- It seems the default 0.25 shows the best trade-off so far and we did not observe any hallucinations. 
+- We can settle for the default confidence threshold for now, but it isn't final. 
+- We can revisit after the tracker is running because what the tracker can tolerate can shift the threshold. 
+
+For now, ***0.25 will be our starting point.***

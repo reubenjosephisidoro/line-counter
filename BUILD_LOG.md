@@ -1,6 +1,41 @@
 **This log is for my personal reference but I placed it here because it will show the actual process of completing the project (even though it's less polished and messier than the README)
 
-## Last Update: 2026-09-09
+## *Last Update: 2026-10-11*
+
+### DONE
+
+- Cut 4 dev clips (two more than the initial planned): 2 overhead-heavy, 1 overhead-medium w/ congestion, 1 roadside-heavy w/ congestion
+- Set up Kaggle notebook (T4 GPU) with ultralytics for detection work
+- Chose YOLOv8m as working model. T4 has 16GB VRAM, medium is the accuracy-speed sweet spot
+- Ran detector on sampled frames across all 4 dev clips, observations recorded in `detection-per-frame-analysis` notebook
+- Tested confidence thresholds at 0.1, 0.25, 0.5, 0.8 — settled on 0.25 as starting threshold (revisit after tracker)
+- Note: no hallucinations observed at 0.25 across all dev clips
+- Identified different-class duplicate box pattern (truck/car, bus/truck overlaps on same vehicle)
+- Decided which COCO class IDs to keep [car(2), truck(7), bus(5), motorcycle(3)]. Filtering the next round of detections
+
+### STILL BROKEN (FIX IN PROGRESS)
+- None for now
+
+### LEARNINGS
+- Detection quality degrades with distance consistently across all dev clips
+- The reliable zone (detection zone boundary) is roughly mid-road forward
+- Misclassifications cluster at greater depth where vehicles are smaller and less distinct
+- False positive = box on a non-vehicle (relative to our task).
+- Misclassification = real vehicle, wrong label.
+- Hallucination = box on literally nothing
+- NMS is per-class by default. Overlapping boxes of different classes both survive, risking double-counts at the tracker. agnostic_nms=True should resolve this
+- COCO has no "van" class. Vans get labeled car or truck depending on angle
+- Confidence threshold and class filtering solve different problems. 
+- Threshold removes hallucinations, filtering removes correctly-detected non-vehicles
+
+### FOR THE NEXT SESSION
+- Apply vehicle class filter (car, truck, bus, motorcycle)
+- Run detector on full dev clip, produce output video with bounding boxes
+- Record processing speed (FPS on T4)
+- Make decision whether to fine-tune YOLOv8m on our own dataset or stick with the COCO pretrained weights as-is.
+
+
+## *Last Update: 2026-09-09*
 
 ### DONE
 - Wrote SPEC.md detailing the planned output schema, accuracy targets, operating conditions, out-of-scope items, and what a "finished project" means
@@ -29,5 +64,4 @@
 
 ### FOR THE NEXT SESSION
 - Find a low-traffic segment and a congestion segment for dev clips
-- Begin formal hand-counting on eval clips (count twice, compare)
 - Film own footage if time and location allow
