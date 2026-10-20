@@ -13,3 +13,5 @@ vehicle-counter/
 ├── notebooks/       
 ├── outputs/        
 └── tests/  
+
+Download clips used in dev from this Google Drive Folder and place them in `data/Dev_Clips`

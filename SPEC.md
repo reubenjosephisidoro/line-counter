@@ -3,7 +3,7 @@
 "Submitted for your approval: a 1997 Corolla, ID 3, last seen at y=397. It will cross no line.   
 It will register no event. It has entered... the Twilight Zone."
 
-*Last updated: 2026-09-29*
+*Last updated: 2026-10-20* 
 
 This document details the high-level scope of this project. It aims to identify what  
 the delivarible is, what it is not, foundational parameters, architectural constraints,   
@@ -80,8 +80,8 @@ Three metrics are reported per clip:
 a clip where the system misses five vehicles but phantom counts another   
 five vehicles scores a perfect 0% in `net count error` while hiding the mistakes it made.  
 Gross error rate catches that by counting individual mistakes (misses + phantom counts).   
-Direction accuracy is tracked separately because ID swaps (when objects get too close)   
-can change ID directions without affecting totals.  
+Direction accuracy is tracked separately because ID transfers/swaps (one vehicle's track ID jumps to  
+another vehicle nearby) can change recorded directions without affecting totals.  
 
 - **Class breakdown is not taken into account in accuracy claims.** Class labels are    
 reported but not scored. Class confusion (e.g., mistaking a `truck` for a `bus`)  
@@ -184,8 +184,10 @@ zooming, or handheld footage
 **Scene**
 - Vehicles are the objects of interest
 - Pedestrians and cyclists are filtered out by class
-- Traffic is preferably light to moderate in density where vehicles are generally
-  distinguishable rather than mostly overlapping
+- Traffic density from light to heavy is supported. 
+- We tested on heavy traffic clips and found that congested conditions negatively impact accuracy.   
+Vehicles that are packed tightly produce bounding boxes that heavily overlap, causing cascading ID   
+transfers in the tracker, which is a limitation of IoU-based matching rather than detection quality
 - No persistent obstruction (e.g., signs, overpass) crossing the counting
   line
 
@@ -194,8 +196,11 @@ zooming, or handheld footage
 - *[Actual machine specs placed here later]*
 - *[Throughput figures reported later are relative to this hardware specs]*
 
-**Known Limitation.** Accuracy is expected to decline as: 
-- Traffic density rises
+**Known Limitations.** Performance is expected to decline as: 
+
+- Traffic density rises. Vehicles clustered closely together can trigger ID transfers and cascading   
+ID reassignments in the tracker due to IoU-caused mismatches of tracks and detections. This can inflate or deflate counting depending  
+on where the ID transfers/switches occur relative to the counting line. This issue is tracker-side and detection itself remains reliable.
 - The camera angle flattens toward road level 
 - As vehicles become smaller in frame. 
 
