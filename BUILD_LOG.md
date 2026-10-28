@@ -1,14 +1,46 @@
-**This log is for my personal reference but I placed it here because it will show the actual process of completing the project (even though it's less polished and messier than the README)
+**This log is for my personal reference but I placed it here because it will show the actual process of completing the project (even though it's messier than the README)
+
+## *Last Update: 2026-10-28*
+
+### DONE
+
+- Increased `track_buffer` from 30 (default) to 60 and ran the tracker on a moderate traffic clip, recorded findings.
+- Decided to keep `track_buffer=60` as the working setting. No visible downside observed while providing imrovements in track maintenance
+- Created `bytetrack_w_buffer60.yaml` config variant. Other than `track_buffer=60`, all parameters use default values
+- Built `track_vehicles()` function in `src/tracking.py` (`tracking.py` renamed to `detection.py`). An interface for the counting logic to use
+- Dropped `detection-notes.md` as redundant (observations are already recorded in the experiment notebooks)
+
+### STILL BROKEN
+
+- Congested lane cascading ID transfers persist at `track_buffer=60`. 
+- The cascade is an IoU matching problem between active tracks, not a buffer timing issue. Could still be improved with ReID
+
+### LEARNINGS
+
+- Confirmed `track_buffer=60` helps with brief occlusions (track stays alive to reclaim its detection) but does not fix the congestion cascade
+- An evidence of this is the 5% drop of unique IDs (from 348 to 331). Fewer tracks were lost and more vehicles kept their IDs through occlusion.
+- Confirmed ghost tracks are not a concern for clips with overhead camera angles since vehicles enter and exit on separate lanes
+- Most ID issues occur between live, overlapping tracks. The exception is track fragmentation, which is exactly what the longer buffer can help prevent
+- We only tested `track_buffer=60` on an overhead angle with moderate-to-heavy traffic but roadside views with frequent occlusions should benefit as well.
+- The default NMS IoU threshold of 0.7 should mean it is rare for NMS to suppress a vehicle's box during occlusion.
+- For most cases, NMS will only suppress duplicate, different-class boxes on the same vehicle, instead of separate vehicles occluding each other.
+- And if the occluded vehicle’s box does survive, it likely survives NMS too. 
+
+### FOR THE NEXT SESSION
+
+- Place counting line in the reliable detection zone and implement crossing logic
+- Define the event schema and begin writing crossing events
+
 
 ## *Last Update: 2026-10-21*
 
 ### DONE
 
-- Ran detector on full dev clips with class filter (vehicles only except bicycles) and agnostic_nms=True, produced annotated output videos
-- Recorded processing speed on T4 GPU
+- Ran detector on full dev clips with class filter (vehicles only except bicycles) and `agnostic_nms=True`, produced annotated output videos
+- Recorded processing speed on a single T4 GPU
 - Completed experiment found in `detection-running-video-analysis` notebook 
 - Documented detection instabilities (detection dropout, class oscillation, merged detections, duplicate different-class boxes, far zone issues)
-- Decided to stick with COCO pretrained weights (no fine-tuning needed and detection quality is sufficient) for now. May tune the model later if proven needed 
+- Decided to stick with COCO pretrained weights (no fine-tuning needed and detection quality is sufficient) for now. May tune the model later if needed 
 - Decided to implement ByteTrack for tracking (via ultralytics built-in and no ReID). Not final as we might switch to an algorithm with ReID
 - Documented ByteTrack default configs: `track_high_thresh: 0.25`, `track_low_thresh: 0.1`, `new_track_thresh: 0.25`, `track_buffer: 30`, `match_thresh: 0.8`
 - Ran tracking on `dev_overhead_medium_congest_01.mp4` with `agnostic_nms=True` (Tracking experiment 1)
@@ -16,9 +48,9 @@
 - Ran experiment 2: `agnostic_nms=True` vs `False` comparison. Unique IDs jumped from 348 to 470 (+35%) with it off.   
 - Congested lane behavior identical whether agnostic NMS is enabled or not. Confirmed that `agnostic_nms=True` is the correct setting
 - Ran Experiment 3: Confirmed track IDs are stable in the reliable detection zone for both incoming and outgoing lanes
-- Built tracking instabilities reference table (ID transfer, track fragmentation, ghost track, premature termination, cascading ID transfers, detection merge --> ID inheritance)
+- Built tracking instabilities reference table (for ID transfer, track fragmentation, ghost track, premature termination, cascading ID transfers)
 - Updated `SPEC.md`: refined "Scene" conditions, "Known Limitations" with details specific to the tracker
-- Set up output video hosting (unlisted YouTube links from notebooks) and added Drive link in README for dev clips
+- Set up output video hosting (unlisted YouTube links for notebooks) and added Drive link in README for dev clips
 
 ### STILL BROKEN (FIX IN PROGRESS)
 
@@ -29,17 +61,16 @@
 
 - `new_track_thresh: 0.25` matches `conf=0.25`, so that every detection surviving the confidence score filter is immediately assigned a track ID
 - `track_high_thresh: 0.25`, intentionally lower that the paper's τ=0.6 can effectively reduce the two-pass design to a single pass
-- The reliable detection zone (close to the camera forward mid-frame) also produces stable tracking. 
+- The reliable detection zone (close to the camera forward mid-frame) produces stable tracking. 
 - This reinforces the reliable zone as the ideal region for positioning the counting line since it is where detection and tracking are most trustworthy.
 - ID transfers are one-directional (vehicle A’s ID is transferred to B). True ID swaps (A and B exchange IDs) were not observed
 - Cascading ID transfers happen when one bad IoU match propagates through the Hungarian algorithm, which conducts global assignments. Each wrong pairing can distort the rest
-- It is revealed intra-class NMS did not cause the cascading effect because setting `agnostic_nms=False` provided no meaningful improvement in maintaining tracks through congestion
+- Setting `agnostic_nms=False` provided no meaningful improvement in maintaining tracks through congestion and in general
 - Detection quality remains reliable. As mentioned, performance decline in congestion is a tracker-side problem.
 - Outgoing vehicles entering the view often start with oversized bounding boxes that are corrected just after a few frames
 
 ### FOR THE NEXT SESSION
 
-- Build an interface function that serves as a single entry point that takes a video clip and returns per-frame bounding boxes, track IDs, and classes
 - Run tracking on all dev clips and compare behavior across different traffic densities
 - Determine and implement crossing logic then place the counting line
 
