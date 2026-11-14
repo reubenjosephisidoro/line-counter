@@ -1,0 +1,52 @@
+dev_overhead_medium_congest_01.mp4:
+  incoming:
+    # coords: [[362, 1862], [1866, 1869]]
+    coords: [[582, 1730], [1895, 1720]]
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+  outgoing: 
+    coords: [[2080, 1364], [2970, 1352]]
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+dev_overhead_heavy_01.mp4:
+  incoming:
+    coords: [[x1, y1], [x2, y2]]
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+  outgoing:
+    coords: [[x1, y1], [x2, y2]]
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+dev_overhead_heavy_02.mp4:
+  incoming:
+    coords: [[x1, y1], [x2, y2]]
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+  outgoing:
+    coords: [[x1, y1], [x2, y2]]
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+dev_roadside_heavy_congest_01.mp4:
+  incoming:
+    coords: [[x1, y1], [x2, y2]]
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+  outgoing:
+    coords: [[x1, y1], [x2, y2]]
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"

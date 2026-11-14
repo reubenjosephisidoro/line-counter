@@ -1,5 +1,62 @@
 **This log is for my personal reference but I placed it here because it will show the actual process of completing the project (even though it's messier than the README)
 
+## *Last Update: 2026-11-14*
+
+### DONE
+
+- Completed the `counting-analysis` notebook on `dev_overhead_medium_congest_01.mp4` (first counting run through to a working setup)
+- Defined the counting line config in `config/counting_lines.yaml`. One entry per clip, with the line ID (e.g., `incoming`, `outgoing`) as the key
+- Settled with the cross product sign as the means to determine which side of the counting line a vehicle's anchor point is on
+- Set the counting line conventions. All line vectors drawn left to right and A is always the positive side and B negative 
+- For directions, `B --> A` positive (since A corresponds to positive) while `A --> B` negative
+- Decided that the bottom-center of a detection box will serve as the anchor point that will cross-product with the corresponding line
+- Built `LineCrossingCounter` in `src/counting.py`. Cross-product side test, per-direction counts, per-track `cooldown=30`, and events that adhere to `SPEC.md`
+- The first counting run showed cross-lane contamination. Added region-gated counting (one ROI polygon per lane to be checked with `in_roi()` function)
+- Built `FrameLogger` to record every detection on every frame into a DataFrame (frame number, `track ID`, `box (xyxy)`, `box_area`, anchor point, sign per line)
+- Saved the tracked detections once (pickle) and added a replay path to `process_clip`, so counting changes can be tested without model inference. Replay reproduced the full run.
+- Moved the drawing code out of `process_clip` into `draw_annotations()`
+- Implemented hysteresis in `LineCrossingCounter` (`hyst_n`). A side flip must hold for `hyst_n` consecutive sightings before it is counted (event is logged at crossing frame)
+- Moved the incoming line a short distance further from the camera to give vehicles more frames after crossing (M went from 4 to 6). 
+- Set `hyst_n=5` for incoming and `hyst_n=4` for outgoing for `dev_overhead_medium_congest_01.mp4`
+- Recorded the final result on this clip. Incoming 83 vs 81 by hand, outgoing 70 vs 71 by hand, with no wrong-direction counts
+
+### STILL BROKEN
+
+- Incoming is over by 2. An van with a trailer towing two cars was detected as separate boxes, and each box crossed and was counted
+- Outgoing is under by 1. One motorcycle object was not able to be detected, so there is nothing to count
+- Both are detector-side errors and cannot be fixed in the counting logic (only by changing or possibly tuning the detector)
+- Congested lane cascading ID transfers are still present (tracker limitation), though the counting errors from this clip did not originate from them
+- Settings are tuned on one dev clip only. The margin on the both lines is just one frame (inc: M=6, `hyst_n=5`, out: M=5, `hyst_n=4`)
+
+### LEARNINGS
+
+- The cross-product treats the counting line as infinite. This means a vehicle in another lane can change sides based on it. 
+- A counting line needs an ROI (region of interest) gating to capture which vehicles belong to it
+- A close system total can hide errors. The pre-hysteresis outgoing count was 72 vs 71, but it contained three different errors that nearly cancelled out
+- Cooldown and hysteresis overlap but they still differ in purpose. Cooldown blocks repeat counts after a crossing is counted. 
+- Hysteresis, on the other hand, stops a false flip from being counted in the first place
+- Hysteresis alone fixed the occluded stationary truck (its box was pushed across the line but vanished before `hyst_n` sightings). 
+- Box-change rejection was planned to be added but found unneccessary, at least on this clip
+- `hyst_n` has a ceiling (M). This is the fewest frames a real vehicle is seen after crossing. M is different for each line.
+- M has to be measured from a log taken from a run without hysteresis, to ensure signs flip exactly upon crossing
+- A higher hysteresis N can remove real crossings. A van on the outgoing line was missed because its detection dropped out before `hyst_n`
+- Placing the line close to the camera gives better detections at the crossing but has the downside of leaving fewer frames after it
+- In earlier versions of `LineCrossingCounter`, a flip blocked by the cooldown will skip the side update and leave a stale side. 
+- Upon modifying `LineCrossingCounter`, the side now updates whenever a flip is confirmed (`> hyst_n`), whether or not it is counted
+- Inference is deterministic on the same hardware and settings (with same boxes and IDs every run). 
+- Still, track IDs can change when tracker settings change, so problem vehicles are identified by position
+  - I forgot to set `track_buffer=60` (from 30) during the first few runs so I reran and got different IDs paired to detections
+  - While changing `track_buffer` renumbered the tracks, it did not change detections in all frames
+- Model inference is the slow part of the pipeline. Counting logic can be replayed on saved detections in a fraction of the time
+
+### FOR THE NEXT SESSION
+
+- Start the `tuning-system-on-dev-clips` notebook for the remaining three dev clips
+- For each clip, place the lines and ROIs, save the detections, measure M per line, set `hyst_n`, and repeat
+- Record every run as one row in a results table (settings used and the resulting counts), then write a short summary once each clip is done
+- Move the ROI polygons, `hyst_n`, and `cooldown` into the config file
+
+
 ## *Last Update: 2026-10-28*
 
 ### DONE

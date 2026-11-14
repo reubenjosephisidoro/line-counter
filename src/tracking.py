@@ -1,5 +1,3 @@
-
-
 def detect_vehicles(frame, model, agnos_nms=True):
 
     results = model.predict(frame, 
@@ -27,11 +25,11 @@ def detect_vehicles(frame, model, agnos_nms=True):
 def track_vehicles(frame, model, agnos_nms=True, track_file="bytetrack.yaml"):
 
     results = model.track(frame, 
-                          persist=True, 
                           classes=[2,3,5,7],
                           conf=0.25,
                           agnostic_nms=agnos_nms,
                           verbose=False,
+                          persist=True, 
                           tracker=track_file)
 
     track_ids = results[0].boxes.id
@@ -42,8 +40,8 @@ def track_vehicles(frame, model, agnos_nms=True, track_file="bytetrack.yaml"):
     boxes = results[0].boxes.xyxy
     conf_scores = results[0].boxes.conf
     cls_ids = results[0].boxes.cls
-
-    detections_and_tracks = []
+    
+    tracked_detections = []
     for box, score, cls_id, tr_id in zip(boxes, conf_scores, cls_ids, track_ids):
 
         prediction = {"box": box.tolist(),
@@ -51,6 +49,6 @@ def track_vehicles(frame, model, agnos_nms=True, track_file="bytetrack.yaml"):
                       "cls_id": cls_id.item(),
                       "track_id": tr_id.item()}
 
-        detections_and_tracks.append(prediction)
+        tracked_detections.append(prediction)
     
-    return detections_and_tracks
+    return tracked_detections
