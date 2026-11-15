@@ -28,6 +28,7 @@ env/
 
 # Notebooks
 .ipynb_checkpoints/
+notebooks/scratchpad.ipynb
 
 # Environment
 .env
