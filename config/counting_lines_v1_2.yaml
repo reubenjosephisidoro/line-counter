@@ -1,0 +1,128 @@
+dev_overhead_medium_congest_01.mp4:
+  incoming:
+    line: [[582, 1730], [1895, 1720]]
+    counting_zone: [[-200, 2170],  # bottom-left (lower bound)
+                    [1155, 1426],  # left edge (first bend)
+                    [1399, 1303],  # left edge (2nd bend)
+                    [1640, 1217],  # left edge (3rd bend)
+                    [1860, 1134],  # left edge (4th)
+                    [2005, 1097],  # top-left (upper bound)
+                    [2117, 1104],  # top-right (upper bound)
+                    [2053, 1174],  # right edge bend 3
+                    [2034, 1213],  # right edge bend 2
+                    [1940, 1552],  # right edge bend 1
+                    [1826, 2158]]  # bottom-right (lower bound)
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+  outgoing: 
+    line: [[2080, 1364], [2970, 1352]]
+    counting_zone: [[2334, 2041],  # bottom-left (lower bound)
+                    [2208, 1603],  # left bend
+                    [2134, 1272],  # left bend
+                    [2129, 1196],  # left bend
+                    [2134, 1159],  # left bend
+                    [2172, 1100],  # top-left (upper bound)
+                    [2300, 1102],  # top-right (upper bound)
+                    [2585, 1254],  # right edge bend
+                    [3120, 1542],  # right edge bend
+                    [3536, 1754],  # right edge bend
+                    [4050, 2028]]  # bottom-right (lower bound)
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+dev_overhead_heavy_01.mp4:
+  incoming:
+    line: [[343, 1042], [1853, 1042]]
+    counting_zone: [[-1000, 2158], 
+                    [13, 1179], 
+                    [343, 1042],
+                    [1371, 635],
+                    [1793, 473],
+                    [1913, 473],
+                    [1853, 1042],
+                    [1754, 2158]]
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+  outgoing:
+    line: [[2008, 988], [3405, 988]]
+    counting_zone: [[2141, 2158],
+                    [2008, 988],
+                    [1935, 473],
+                    [2057, 473],
+                    [3405, 988],
+                    [6532, 2158]]
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+dev_overhead_heavy_02.mp4:
+  incoming:
+    line: [[582, 1730], [1895, 1720]]
+    counting_zone: [[-200, 2170],  # bottom-left (lower bound)
+                    [1155, 1426],  # left edge (first bend)
+                    [1399, 1303],  # left edge (2nd bend)
+                    [1640, 1217],  # left edge (3rd bend)
+                    [1860, 1134],  # left edge (4th)
+                    [2005, 1097],  # top-left (upper bound)
+                    [2117, 1104],  # top-right (upper bound)
+                    [2053, 1174],  # right edge bend 3
+                    [2034, 1213],  # right edge bend 2
+                    [1940, 1552],  # right edge bend 1
+                    [1826, 2158]]  # bottom-right (lower bound)
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+  outgoing: 
+    line: [[2080, 1364], [2970, 1352]]
+    counting_zone: [[2334, 2041],  # bottom-left (lower bound)
+                    [2208, 1603],  # left bend
+                    [2134, 1272],  # left bend
+                    [2129, 1196],  # left bend
+                    [2134, 1159],  # left bend
+                    [2172, 1100],  # top-left (upper bound)
+                    [2300, 1102],  # top-right (upper bound)
+                    [2585, 1254],  # right edge bend
+                    [3120, 1542],  # right edge bend
+                    [3536, 1754],  # right edge bend
+                    [4050, 2028]]  # bottom-right (lower bound)
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+dev_roadside_heavy_congest_01.mp4:
+  incoming:
+    # line: [[684, 601], [1600, 690]]
+    line: [[580, 645], [1574, 742]]
+    counting_zone: [[-500, 1080],
+                    [684, 601],
+                    [1341, 341],
+                    [1724, 184],
+                    [1786, 191],
+                    [1600, 690],
+                    [1439, 1079]]
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"
+
+  outgoing:
+    line: [[498, 416], [984, 446]]
+    counting_zone: [[0.4, 517], 
+                    [498, 416], 
+                    [1125, 290],
+                    [1562, 198],
+                    [1700, 167],
+                    [1725, 171],
+                    [1633, 207],
+                    [1509, 250],
+                    [984, 446],
+                    [191, 749],
+                    [2, 818]]
+    directions:
+      negative: "A --> B"
+      positive: "B --> A"

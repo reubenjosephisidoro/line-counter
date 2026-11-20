@@ -1,5 +1,69 @@
 **This log is for my personal reference but I placed it here because it will show the actual process of completing the project (even though it's messier than the README)
 
+## *Last Update: 2026-11-20*
+
+### DONE
+
+- Started the `counting-tuning-dev-clips` notebook for the remaining three dev clips
+- Renamed `hyst_n` to `hys_n`
+- Updated `process_clip` to either run model inference (and pickle the detections) or simply replay saved detections without the model. 
+- Separated the annotation writing mechanism from `process_clip` into its own function `draw_annotations`
+- Updated `draw_annotations` to also show each detection's confidence score in addition to track ID, class ID, and sign
+- `event` class is now taken at the crossing frame (`flip_class` in `tentative_crossed`), not at the frame where `hys_n` is reached. 
+  - Before this, a car/truck flicker could change the recorded class depending on `hys_n` (hysteresis N)
+- Rewrote `get_span` to count sightings only for tracks that went through a fresh crossing first (was seen on the other side of the line first) 
+- Added `get_scores` for displaying per-line and total net count error, gross error rate, phantom counts, and misses
+- Renamed the config key `coords` to `line` and added `counting_zone` for each line
+- Decided to drop direction accuracy as a metric. Only net count error and gross error rate remain
+- Tuned all four dev clips. All meet the targets (net count error ≤ 5%, gross error rate ≤ 10%) for each line and each clip
+  - `dev_overhead_heavy_01`: incoming `hys_n=11`, outgoing `hys_n=1`. GER 6.0%
+  - `dev_overhead_heavy_02`: `hys_n=1` on both lines. NCE and GER 1.0%, the best clip so far
+  - `dev_roadside_heavy_congest_01`: moved the incoming line closer to the camera, `hys_n=1` on both lines. GER 5.1%
+- Compared runs by merging (outer join) their `event` lists instead of manually recounting the video by hand
+- Added the `scratchpad.ipynb` notebook to gitignore
+
+### STILL BROKEN
+
+- Many vehicles with trailers are still detected as two or three boxes (split detection). This is the main source of phantom counts (detector-related issue)
+- Vehicles hidden behind large trucks are missed entirely, especially in the far lanes of the roadside clip. Also saw one case of merged detection causing a miss
+- Motorcycles are still missed by the detector. Higher `imgsz` and a low-confidence check have not been tried yet (to know if they are being detected at all) 
+- `dev_overhead_heavy_01` incoming `hys_n=11` has no margin. The two fastest real cars were seen exactly 11 times after crossing
+  - The actual M is 4, not 12. We did this deliberately to remove 7 phantom counts at the expense of 3 real crossings (improving gross error rate).
+- Moving the roadside incoming line brought its NCE to 0%, but only because 3 phantoms cancel out 3 misses. GER did not improve
+
+### LEARNINGS
+
+- net count error can hide errors that cancel out. gross error rate adds up every phantom and every miss, so it is the more reliable number, especially for clip totals
+- When the system total equals the true total, either the system counted perfectly or misses and phantoms are equal, cancelling out
+- Direction accuracy turned out to be redundant. 
+  - The cross-product already provides a real crossing with its actual direction and side, so wrong-direction events are always phantoms, which GER already counts
+- A crossing is counted when its sightings on the new side reach `hys_n`, and the crossing frame counts as the first sighting
+- M has to come from real crossings only, including vehicles whose ID was lost right after crossing (`span` cannot spot this and hysteresis ignores gaps anyway)
+- Raising `hys_n` can reduce phantom counts but add misses. 
+  - It only lowers GER if it removes more phantoms than real crossings, so the low-`count` crossings have to be checked in the video first if they are real or not
+- Moving a counting line changes the true total.
+  - A vehicle that is already past the old line when the clip starts can now cross the new line
+  - OR a vehicle that reaches the old line cannot reach the new one before the clip ends
+  - In both cases, vehicels are counted at one line position but not the other
+- `CAP_PROP_FRAME_COUNT` comes from the file's metadata, which is not always the same as actual. 
+  - One one clip (ffmpeg cut without re-encoding), `CAP_PROP_FRAME_COUNT` reported 2892 frames but only 2880 could be read
+- Detector settings (model, input size, confidence threshold, and tracker algorithm) apply to the whole system. 
+  - Only line coordinates, counting zone coordinates, `hys_n` and `cooldown` are set per clip
+- Our targets hold up against published ones. 
+  - For instance, a 5% NCE target matches the [Virginia DOT acceptance framework](https://vtrc.virginia.gov/reports/all-reports/26-r53/)
+  - In addition, GER is stricter than the WAPE metric agencies use
+    - WAPE adds up the error of each time interval (for example, every 15 minutes), so a phantom and a miss in the same interval still cancel each other out. 
+    - Gross error rate, on the other hand, counts every phantom and every miss in the numerator, so nothing cancels.
+- Side-view occlusion is a [known limit of a roadside camera position](https://link.springer.com/article/10.1007/s00138-025-01668-x). We can look into automatic line placement as later extension.
+
+### FOR THE NEXT SESSION
+
+- Decide whether the targets apply per clip or per line 
+- Try a higher input size and the motorcycle low-confidence check, if at all, before the eval clips. 
+- Move `hys_n` and `cooldown` into the config file
+- Freeze the system and run the eval clips. Place lines and zones using the same rules, hand count, run once, label events
+
+
 ## *Last Update: 2026-11-14*
 
 ### DONE

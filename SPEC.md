@@ -74,14 +74,15 @@ Three metrics are reported per clip:
 |---|---|---|
 | Net count error | \|system total − true total\| ÷ true total | ≤ 5% |
 | Gross error rate | (misses (FNs) + phantom counts (FPs)) ÷ true total | ≤ 10% |
-| Direction accuracy | Events with correct direction ÷ true total | ≥ 95% |
 
-- **Why three.** Looking at net count error alone could mislead. For example,      
+- **Why two.** Looking at net count error alone could mislead. For example,      
 a clip where the system misses five vehicles but phantom counts another   
-five vehicles scores a perfect 0% in `net count error` while hiding the mistakes it made.  
-Gross error rate catches that by counting individual mistakes (misses + phantom counts).   
-Direction accuracy is tracked separately because ID transfers/swaps (one vehicle's track ID jumps to  
-another vehicle nearby) can change recorded directions without affecting totals.  
+five vehicles scores a perfect 0% in `net count error` while hiding the mistakes it made.    
+Gross error rate catches that by counting individual mistakes (misses + phantom counts).     
+**Revision (2026-11-17).** Direction accuracy was removed from the accuracy metrics.   
+The counter assigns each crossing's direction from the vehicle's own movement based on the line,     
+so a real crossing can only be mislabeled through a configuration error. If a wrong-direction event  
+occurs, these are phantom counts (false positives) and are already captured by the gross error rate.  
 
 - **Class breakdown is not taken into account in accuracy claims.** Class labels are    
 reported but not scored. Class confusion (e.g., mistaking a `truck` for a `bus`)  
@@ -113,14 +114,14 @@ If the road has 4 lanes in each direction, that's 8 lanes total for the density 
 
 This gives a vehicles-per-minute/lane figure comparable across all eval clips.
 
-| Label  | Vehicles per lane per minute | Description                        |
+| Label  | Vehicles per lane per minute | Description |
 |--------|-----------------------------|------------------------------------|
 | Light  | 1–6                        | Clear gaps between vehicles        |
 | Medium | 7–16                       | Steady flow, gaps under ~2 seconds |
 | Heavy  | 17+                        | Near-continuous flow, minimal gaps  |
 
-Note that these "Light, Medium, Heavy" labels are only for organizing evaluation clips and   
-are based on observation, not from any formal traffic volume classifications.   
+Note that these "Light, Medium, Heavy" labels are only for organizing evaluation and dev clips   
+and are based on observation, not from any formal traffic volume classifications.   
 They are defined so traffic condition is taken into account when reporting accuracy.  
 
 If traffic density varies noticeably within a clip (e.g., light for 3 mins then heavy for one),    
