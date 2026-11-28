@@ -1,5 +1,79 @@
 **This log is for my personal reference but I placed it here because it will show the actual process of completing the project (even though it's messier than the README)
 
+
+## *Last Update: 2026-11-28*
+
+### DONE
+
+- Planned the evaluation. 
+  - Each eval clip gets its own study clip (footage from the same recording but outside the eval clip) for setting ideal lines, zones and `hys_n`. 
+  - Each eval clip will then be run once. There will be no changes in the settings after the results are seen (this is for the next session)
+- Cut study clips for all four eval clips: 
+  - `study_eval_overhead_heavy_01` 
+  - `study_eval_overhead_medium_01`
+  - `study_eval_roadside_medium_01` (only 1:15 long, because the source recording is short) 
+  - `study_eval_roadside_medium_02` (60 fps)
+- Added `generate_detections` to make a tracked detection video of a study clip and save its detections for replays. 
+  - Each annotated study clip output is used to find suitable counting lines, zones, and hysteresis M and N (`hys_n`) for the eval clip
+  - This is similar to an operator first looking at past footage and drawing detections on objects prior to defining settings for that camera
+  - `track_vehicles` now also returns the raw results for drawing (within `generate_detections`)
+- Updated `draw_annotations`
+  - Detections whose anchor points fall outside every counting zone are drawn as thin gray boxes with no label
+  - The count overlay now has a background the fits the text
+  - Note that the text and background styles, sizes, colors, or any overlay interface elements are not final and will change in the final interface
+- Made `cooldown` and `track_buffer` follow each clip's frame rate
+  - `cooldown = round(1.2 × fps)` and `track_buffer = round(2.4 × fps)`, so both cover the same time on every clip
+  - `cooldown` is always 1.2 seconds while `track_buffer` is 2.4 seconds whether the clip runs at 25, 30 or 60 fps
+  - One tracker config file per frame rate (25, 30 and 60 fps), since Ultralytics `model.track()` only reads tracker settings from a file
+  - Dev clips are all 25 fps, so their settings and results are unchanged
+- Replaced the per-line `directions` config in the YAML config file with a `DIR_LABELS` constant in the code
+  - This is because labels are the same for every line. A positive crossing is always "B --> A" and negative "A --> B"
+- Set up all four study clips (these are setup numbers, NOT EVAL RESULTS):
+  - `study_eval_overhead_heavy_01`: moving the outgoing line further from the camera recovered 5 hidden cars and removed 2 split detections. GER 0.2%
+  - `study_eval_overhead_medium_01`: GER 0.7%
+  - `study_eval_roadside_medium_01`: incoming 18 of 18, outgoing 6 of 7 
+    - Moving the outgoing line to catch that one vehicle would mean fitting it to one car rather than the road. 
+    - We keep the line where most vehicles show a steady box
+  - `study_eval_roadside_medium_02`: GER 4.1% (still below 10%)
+- Wrote `counting_lines_eval.yaml` with the lines, zones and `hys_n=1` for all four eval clips (triggering this repo update)
+  - Committed before running any eval clip, so the history shows every setting was fixed before system performance was measured on the eval clips
+  - This means no setting can be changed after seeing eval results. This avoids leaking eval information, which can be used to improve the settings
+  - All settings and final placements were set from the study clips
+
+### STILL BROKEN
+
+- Trucks with trailers are still split into two or more boxes. All 4 phantoms on `study_eval_roadside_medium_02` were split detections
+- Vehicles hidden behind other vehicles are still missed. This is more frequent on the roadside clips
+- Motorcycles are still missed by the detector
+- On `study_eval_roadside_medium_02`, a few large trucks close to the camera have boxes whose anchor points falls outside the incoming zone. 
+  - It did not affect counting quality (these vehicles did not cause misses or phantom counts)
+  - We have to accept this because the zone cannot be extended further past the road's median barrier
+- The outgoing setup for `eval_roadside_medium_01` study clip relied only on 7 vehicles (1 of which is missed due to dropout)
+- `src` still lags behind the notebooks
+
+### LEARNINGS
+
+- An eval clip only measures the system fairly if nothing was tuned on it. Watching the road to place lines is fine, but placing them around the system's errors, or around the detector's output on the scored frames, is tuning
+- Study clips play the role of the past footage a real operator would watch before setting up a new camera
+- Split detections happen mostly close to the camera. Moving a line further away removed them on one clip, but on another they started too far out for that to help
+- Settings counted in frames last less time at higher frame rates: at 60 fps, `cooldown=30` lasts 0.5 s and `track_buffer=60` lasts 1 s. Vehicles move less between frames, but an occlusion uses up the buffer more than twice as fast
+- Ultralytics only reads tracker settings from a YAML file, not from a dict
+- A counting line measures the traffic at its location. A merge lane that joins further down the road is left out of the counting zone and the hand count
+- Line-crossing counting tolerates ID switches: a vehicle can change IDs many times, as long as exactly one ID crosses the line
+- An object in front of the traffic, like a pole, can hide vehicles. One behind the traffic can't
+- Saved detections belong to one specific video and are tracked with whatever tracker settings were used when they were made. A wrong video path made the boxes misalign with the frames
+- YAML has no tuples: points written with parentheses load as strings. `cv2.line` needs whole-number coordinates
+- A 2025 paper on nonlinear count lines ([Machine Vision and Applications](https://link.springer.com/article/10.1007/s00138-025-01668-x)) places count lines automatically from past tracks to avoid occlusion. A reference for automatic line placement later
+
+### FOR THE NEXT SESSION
+
+- Double-check the eval lines and zones, then commit `counting_lines_eval.yaml` before running any eval clip
+- Decide whether the targets apply per clip or per line, and update `SPEC.md` (also the eval clip list if it no longer matches: currently 2 overhead and 2 roadside)
+- Run each eval clip once: hand count, label events, score, and record each error's cause
+- Bring `src` in line with the notebooks (`hys_n` from config, `DIR_LABELS`, frame-rate scaling, tracker files, `flip_class`, `get_span`, `get_scores`)
+- Settle the loose ends from earlier: the eval clip 3 timestamp mismatch, eval clip 4's camera-angle label, and the missing lane counts
+
+
 ## *Last Update: 2026-11-20*
 
 ### DONE

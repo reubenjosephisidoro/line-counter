@@ -1,0 +1,66 @@
+# Note that every setting here was decided on each eval clip's study clip, 
+# which is footage from the same original recording where an eval clip was cut. 
+# Each study clip's time range falls outside that of its corresponding evaluation 
+# clip, and the two do not overlap. This file is committed before any eval clip is 
+# run and is not changed after results are seen.
+
+# Conventions:
+# - Each line is drawn left to right. Points are [x, y] in pixels.
+# - Side A is always positive: "B --> A" is a positive crossing while "A --> B" 
+#   a negative one. These labels come from DIR_LABELS in the code, so they are 
+#   not repeated.
+# - cooldown and track_buffer are not stored here. They are determined based on each
+#   clip's frame rate so they cover the same time on every clip. cooldown is always 
+#   1.2 seconds while and track_buffer is always 2.4 seconds.
+
+eval_overhead_heavy_01.mp4:
+  incoming:
+    line: [[989, 649], [1558, 649]]
+    counting_zone: [[1044, 1080], [989, 649], [978, 447], [982, 376], 
+                    [1070, 376], [1185, 454], [1558, 649], [1920, 848], [1920, 1080]]
+    hys_n: 1
+
+  outgoing:
+    line: [[484, 571], [915, 571]]
+    counting_zone: [[0, 1080], [0, 802], [324, 649], [747, 442], [846, 397], [902, 376], 
+                    [958, 376], [941, 427], [899, 649], [840, 1080]]
+    hys_n: 1
+
+eval_overhead_medium_01.mp4:
+  incoming:
+    line: [[319, 423], [602, 423]]
+    counting_zone: [[0, 720], [0, 600], [319, 423], [562, 291], [604, 275],
+                    [656, 275], [643, 295], [619, 355], [602, 423], [531, 720]]
+    hys_n: 1
+
+  outgoing:
+    line: [[667, 360], [864, 364]]
+    counting_zone: [[715, 720], [674, 438], [667, 360], [668, 296], [675, 275],
+                    [724, 275], [767, 308], [864, 364], [1280, 624], [1280, 720]]
+    hys_n: 1
+
+eval_roadside_medium_01.mp4:
+  incoming:
+    line: [[1385, 1467], [2695, 1360]]
+    counting_zone: [[2145, 2160], [574, 757], 
+                    [774, 762], [1490, 970], [2695, 1360], [3840, 1740], [3840, 2160]]
+    hys_n: 1
+
+  outgoing:
+    line: [[2027, 1087], [2551, 1037]]
+    counting_zone: [[3840, 1618], [2027, 1087], [1406, 913], [813, 757], 
+                    [972, 755], [1287, 817], [1567, 864], [2551, 1037], [3840, 1264]]
+    hys_n: 1
+
+eval_roadside_medium_02.mp4:
+  incoming:
+    line: [[271, 357], [868, 380]]
+    counting_zone: [[0, 422], [271, 357], [1082, 165], [1333, 113], [1471, 91],
+                    [1558, 93], [1376, 166], [1163, 253], [868, 380], [0, 765]]
+    hys_n: 1
+
+  outgoing:
+    line: [[1095, 329], [1695, 345]]
+    counting_zone: [[0, 1080], [0, 868], [1095, 329], [1417, 178], [1584, 96],
+                    [1756, 98], [1741, 185], [1695, 345], [1468, 1080]]
+    hys_n: 1
