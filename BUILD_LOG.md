@@ -39,6 +39,7 @@
   - Committed before running any eval clip, so the history shows every setting was fixed before system performance was measured on the eval clips
   - This means no setting can be changed after seeing eval results. This avoids leaking eval information, which can be used to improve the settings
   - All settings and final placements were set from the study clips
+- Double-checked the eval lines and zones, then committed (including `counting_lines_eval.yaml`) before running any eval clip
 
 ### STILL BROKEN
 
@@ -53,25 +54,32 @@
 
 ### LEARNINGS
 
-- An eval clip only measures the system fairly if nothing was tuned on it. Watching the road to place lines is fine, but placing them around the system's errors, or around the detector's output on the scored frames, is tuning
-- Study clips play the role of the past footage a real operator would watch before setting up a new camera
-- Split detections happen mostly close to the camera. Moving a line further away removed them on one clip, but on another they started too far out for that to help
-- Settings counted in frames last less time at higher frame rates: at 60 fps, `cooldown=30` lasts 0.5 s and `track_buffer=60` lasts 1 s. Vehicles move less between frames, but an occlusion uses up the buffer more than twice as fast
-- Ultralytics only reads tracker settings from a YAML file, not from a dict
+- An eval clip only provides a fair score if we did not use it to tune anything
+  - Watching the eval footage to see where the lanes are and how traffic behaves is okay
+  - Watching how detection and tracking behave on the study clips (footage that does not overlap with the eval), is also fine
+    - It's what the study clips are for
+  - Any change made because of what we saw the system do on the eval clips (such as moving a line to avoid a spot where boxes flicker) is not acceptable
+    - That counts as tuning on the eval data rather than measuring performance on unseen data
+- Study clips play the role of the past footage a real operator would watch before setting up a new system for a camera
+- Split detections happen mostly close to the camera. 
+  - Moving a line further away removed them on one clip
+  - But on another clip, they already appeared far from the camera, so moving the line wouldn't have helped and we left it where it was
+- Settings counted in frames last less time at higher frame rates
+  - At 60 fps, `cooldown=30` lasts only 0.5s and `track_buffer=60` lasts 1s. 
+  - Compare that at 25 fps where `cooldown=30` lasts 1.2s and `track_buffer=60` lasts 2.4s
+  - At higher frame rates, vehicles move less between frames, so an occlusion uses up the `track_buffer` faster (1s at 25fps vs 2.4s at 60 fps)
 - A counting line measures the traffic at its location. A merge lane that joins further down the road is left out of the counting zone and the hand count
-- Line-crossing counting tolerates ID switches: a vehicle can change IDs many times, as long as exactly one ID crosses the line
-- An object in front of the traffic, like a pole, can hide vehicles. One behind the traffic can't
-- Saved detections belong to one specific video and are tracked with whatever tracker settings were used when they were made. A wrong video path made the boxes misalign with the frames
-- YAML has no tuples: points written with parentheses load as strings. `cv2.line` needs whole-number coordinates
-- A 2025 paper on nonlinear count lines ([Machine Vision and Applications](https://link.springer.com/article/10.1007/s00138-025-01668-x)) places count lines automatically from past tracks to avoid occlusion. A reference for automatic line placement later
+- Line-crossing counting tolerates ID switches. A vehicle may change IDs many times (before and after crossing), as long as exactly one ID crosses the line
+- A 2025 paper on nonlinear count lines ([Machine Vision and Applications](https://link.springer.com/article/10.1007/s00138-025-01668-x)) places count lines automatically based on past tracks to avoid occlusion. 
+  - This can serve as a reference resource for automatic line placement later
 
 ### FOR THE NEXT SESSION
 
-- Double-check the eval lines and zones, then commit `counting_lines_eval.yaml` before running any eval clip
-- Decide whether the targets apply per clip or per line, and update `SPEC.md` (also the eval clip list if it no longer matches: currently 2 overhead and 2 roadside)
-- Run each eval clip once: hand count, label events, score, and record each error's cause
-- Bring `src` in line with the notebooks (`hys_n` from config, `DIR_LABELS`, frame-rate scaling, tracker files, `flip_class`, `get_span`, `get_scores`)
-- Settle the loose ends from earlier: the eval clip 3 timestamp mismatch, eval clip 4's camera-angle label, and the missing lane counts
+- Decide whether the targets apply per clip or per line
+- Build out `src` with the version of the code the evaluation will run 
+- Run the eval notebook (`7-counting-evaluation`) on the code in `src` rather than its own copies 
+  - This is so that the evaluation measures the system as it will be shipped
+  - Run each eval clip once. Conduct hand counting, label events (misses and phantom counts), compute scores, and record each error's cause
 
 
 ## *Last Update: 2026-11-20*
